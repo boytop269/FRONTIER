@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0C1433">
+<title>Frontier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F6FB;--surface:#FFFFFF;--surface2:#EDF0F8;--ink:#0C1433;--muted:#59627F;--line:#D9DFEE;
+  --btn:#1B2766;--btn-ink:#FFFFFF;--amber:#F5A300;
+  --good:#0F7A55;--goodbg:#DAF3E8;--bad:#B1252E;--badbg:#FBE1E3;--focus:#2F5BFF;
+  --disp:'Bricolage Grotesque','Trebuchet MS',system-ui,sans-serif;
+  --body:'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1024;--surface:#121A38;--surface2:#1A2448;--ink:#EEF1FA;--muted:#A3ACC8;--line:#2A3563;
+    --btn:#FFB020;--btn-ink:#241800;--amber:#FFB020;--good:#5FD6A6;--goodbg:#10382B;--bad:#FF8B93;--badbg:#421B20;--focus:#8FA8FF;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1024;--surface:#121A38;--surface2:#1A2448;--ink:#EEF1FA;--muted:#A3ACC8;--line:#2A3563;
+  --btn:#FFB020;--btn-ink:#241800;--amber:#FFB020;--good:#5FD6A6;--goodbg:#10382B;--bad:#FF8B93;--badbg:#421B20;--focus:#8FA8FF;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.5;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 40px}
+.wrap.wide{max-width:1000px}
+.site{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0 8px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand svg{width:34px;height:34px;flex:none}
+.brand b{font-family:var(--disp);font-weight:800;font-size:22px;letter-spacing:-.01em;display:block;line-height:1}
+.brand span{font-size:12.5px;color:var(--muted)}
+#who{font-size:13.5px;color:var(--muted);text-align:right}
+#who strong{color:var(--ink)}
+#who button{margin-left:8px;background:none;border:1px solid var(--line);border-radius:8px;padding:3px 10px;cursor:pointer}
+.tabs{display:flex;gap:6px;padding:4px;background:var(--surface2);border-radius:14px;width:fit-content;max-width:100%;overflow-x:auto;margin:6px 0 20px}
+.tab{border:0;background:none;padding:9px 16px;border-radius:10px;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(12,20,51,.14)}
+h1,h2,h3{font-family:var(--disp);letter-spacing:-.015em;margin:0}
+h2{font-size:26px}
+.muted{color:var(--muted)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
+.btn{border:0;border-radius:12px;padding:12px 20px;font-weight:700;cursor:pointer;background:var(--btn);color:var(--btn-ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.block{width:100%}
+.link{background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;cursor:pointer;font-weight:600}
+.field{display:block;margin-bottom:16px}
+.field>span{display:block;font-weight:600;margin-bottom:5px;font-size:14.5px}
+.field small{color:var(--muted);display:block;margin-top:4px;font-size:13px}
+.inp{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);font-size:17px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row .inp{flex:1;min-width:0}
+.msg{min-height:1.4em;font-size:14.5px;margin:10px 0 0}
+.msg.err{color:var(--bad)}
+.msg.ok{color:var(--good)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+.chip:disabled{cursor:not-allowed;opacity:.5}
+.chip.locked{background:var(--surface2);color:var(--muted);opacity:1}
+.fb{border-radius:12px;padding:12px 14px;margin:10px 0;font-size:15.5px}
+.fb.g{background:var(--goodbg)}.fb.b{background:var(--badbg)}.fb.n{background:var(--surface2)}
+.fb b{display:block;margin-bottom:2px}
+.idcard{border-radius:16px;padding:20px;color:#fff;background:linear-gradient(160deg,#0A1130,#22307A);margin:14px 0}
+.idcard .big{font-family:var(--disp);font-weight:800;font-size:40px;letter-spacing:.02em}
+.idcard small{opacity:.8}
+footer{margin-top:28px;font-size:12.5px;color:var(--muted);text-align:center}
+
+/* today */
+.human{font-family:var(--disp);font-weight:700;font-size:20px;margin:4px 0 0}
+.tag{display:inline-block;font-size:13px;font-weight:600;border-radius:8px;padding:2px 10px;background:var(--surface2);margin-right:6px}
+.tag.ghost{background:none;border:1px solid var(--line);color:var(--muted)}
+details.card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0;background:var(--surface)}
+details.card summary{cursor:pointer;font-weight:700}
+details.card p{margin:8px 0 0}
+.modes{display:grid;gap:10px;margin:14px 0}
+.mode{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;background:var(--surface)}
+.mode input{margin-top:5px;accent-color:var(--btn)}
+.mode:has(input:checked){border-color:var(--btn);background:var(--surface2)}
+.mode b{display:block}
+.qo{list-style:none;margin:8px 0 0;padding:0}
+.qo li{display:flex;gap:10px;align-items:center;background:var(--surface2);border-radius:10px;padding:8px 12px;margin-top:6px}
+.qo .l{flex:none;width:26px;height:26px;border-radius:50%;background:var(--btn);color:var(--btn-ink);display:grid;place-items:center;font-weight:700;font-size:13px}
+.qo li.right{background:var(--goodbg)}
+
+/* CBT */
+.chead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.timer{font-family:var(--disp);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;background:var(--surface2);border-radius:12px;padding:4px 14px}
+.timer.low{color:var(--bad)}
+.prog{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.segs{display:flex;gap:4px;flex:1}
+.seg{height:7px;flex:1;border-radius:4px;background:var(--line)}
+.seg.cur{background:var(--amber)}.seg.ans{background:var(--btn)}.seg.ok{background:var(--good)}.seg.no{background:var(--bad)}
+.count{font-weight:700;font-size:14px;white-space:nowrap}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:3px 11px;font-weight:700;font-size:14px}
+.pill.g{background:var(--goodbg);color:var(--good)}.pill.b{background:var(--badbg);color:var(--bad)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin:0 0 16px}
+.gq{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 0;font-weight:700;cursor:pointer}
+.gq.ans{background:var(--surface2)}.gq.cur{border-color:var(--amber);box-shadow:0 0 0 2px var(--amber)}
+.gq.ok{background:var(--goodbg);color:var(--good)}.gq.no{background:var(--badbg);color:var(--bad)}
+.qno{font-size:22px;margin:14px 0 6px}
+.qtext{font-size:18.5px;line-height:1.55;margin:0 0 16px}
+.qtext u,.card u{text-decoration-thickness:2px;text-underline-offset:3px}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:13px 16px;margin-bottom:10px;cursor:pointer;font-size:17px}
+.opt .l{flex:none;width:32px;height:32px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-weight:700;font-size:15px}
+.opt.sel{border-color:var(--btn);background:var(--surface2)}
+.opt.sel .l{background:var(--btn);color:var(--btn-ink)}
+.opt.right{border-color:var(--good);background:var(--goodbg)}.opt.right .l{background:var(--good);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--badbg)}.opt.wrong .l{background:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:20px}
+.score{font-family:var(--disp);font-weight:800;font-size:64px;line-height:1;letter-spacing:-.03em}
+.bars{margin:18px 0}
+.bar{display:grid;grid-template-columns:120px 1fr 48px;gap:10px;align-items:center;margin:8px 0;font-size:14.5px}
+.track{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--btn)}
+.rev{border-top:1px solid var(--line);padding:14px 0}
+.rev .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-weight:600;margin-bottom:4px}
+.mk{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:14px;font-weight:700;flex:none}
+.mk.ok{background:var(--good)}.mk.no{background:var(--bad)}.mk.sk{background:var(--muted)}
+.rev p{margin:2px 0;font-size:15px}
+table.t{width:100%;border-collapse:collapse;font-size:15px}
+table.t th,table.t td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+.rank{font-family:var(--disp);font-weight:800;width:32px}
+
+/* admin card (fixed visual identity, independent of theme) */
+.admin{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:28px;align-items:start}
+@media (max-width:820px){.admin{grid-template-columns:1fr}.admin .cardcol{order:-1}}
+.seg2{display:inline-flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:18px}
+.seg2 button{border:0;background:var(--surface);padding:9px 16px;font-weight:600;cursor:pointer}
+.seg2 button[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink)}
+textarea.wa{width:100%;min-height:190px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);padding:12px;font:14px/1.5 var(--body);resize:vertical}
+.cardcol{container-type:inline-size;width:100%}
+.qcard{position:relative;overflow:hidden;border-radius:4cqw;color:#fff;aspect-ratio:2/3.1;display:flex;flex-direction:column;padding:6cqw 6cqw 5cqw;
+  background:radial-gradient(130% 52% at 50% 108%,rgba(255,138,61,.95) 0%,rgba(255,176,32,.5) 28%,rgba(255,176,32,0) 62%),linear-gradient(180deg,#0A1130 0%,#152260 60%,#22307A 100%);font-family:var(--body)}
+.qcard .rose{position:absolute;right:-16cqw;top:-12cqw;width:66cqw;color:#fff;opacity:.08;pointer-events:none}
+.qcard .top{display:flex;align-items:center;justify-content:space-between;position:relative}
+.qcard .lg{display:flex;align-items:center;gap:2.6cqw}
+.qcard .lg svg{width:9cqw;height:9cqw}
+.qcard .lg b{display:block;font-family:var(--disp);font-weight:800;font-size:6.2cqw;line-height:1;letter-spacing:-.01em}
+.qcard .lg span{font-size:2.9cqw;opacity:.8}
+.qcard .day{font-weight:700;font-size:3.3cqw;border:.4cqw solid rgba(255,255,255,.55);border-radius:99cqw;padding:1cqw 3cqw}
+.qcard .ttl{font-family:var(--disp);font-weight:800;font-size:11cqw;line-height:.95;letter-spacing:-.025em;margin:7cqw 0 4cqw;position:relative}
+.qcard .subj{display:flex;align-items:center;gap:3cqw;margin-bottom:4cqw;position:relative}
+.qcard .g{flex:none;min-width:9.6cqw;height:9.6cqw;padding:0 1.6cqw;border-radius:99cqw;background:#FFB020;color:#0C1433;font-weight:800;font-size:3.9cqw;display:grid;place-items:center;font-family:var(--disp)}
+.qcard .st b{display:block;font-size:4.6cqw;font-family:var(--disp);font-weight:700;line-height:1.1}
+.qcard .st span{font-size:3.4cqw;opacity:.82}
+.qcard .panel{position:relative;background:#F5F8FF;color:#0C1433;border-radius:3.4cqw;padding:4.6cqw;box-shadow:0 1.4cqw 4cqw rgba(0,0,0,.28)}
+.qcard .q{margin:0 0 1cqw;font-size:4.5cqw;font-weight:600;line-height:1.38}
+.qcard ol{list-style:none;margin:0;padding:0}
+.qcard li{display:flex;align-items:center;gap:3cqw;margin-top:2.2cqw;background:#E4EAF8;border-radius:2.6cqw;padding:2.3cqw 3cqw;font-size:4.2cqw;font-weight:500}
+.qcard .ltr{flex:none;width:7.4cqw;height:7.4cqw;border-radius:50%;background:#152260;color:#fff;font-weight:700;font-size:3.8cqw;display:grid;place-items:center}
+.qcard li.right{background:#CDEFE0}.qcard li.right .ltr{background:#0F7A55}
+.qcard .src{margin:3cqw 0 0;font-size:2.8cqw;color:#5A6484;text-align:right}
+.qcard .ribbon{position:relative;display:flex;justify-content:center;gap:2cqw;align-items:center;margin:6cqw -8cqw 0;padding:3.4cqw 8cqw;background:#FFB020;color:#0C1433;font-family:var(--disp);font-weight:800;font-size:4.5cqw;transform:rotate(-1.3deg)}
+.qcard .solbox{position:relative;margin-top:5cqw;background:rgba(255,255,255,.12);border-left:1.1cqw solid #FFB020;border-radius:2cqw;padding:3.2cqw 3.6cqw}
+.qcard .solbox .k{display:block;font-family:var(--disp);font-weight:800;font-size:4.6cqw;color:#FFC04D;margin-bottom:1cqw}
+.qcard .solbox .v{font-size:3.9cqw;line-height:1.4}
+.qcard .hl{position:relative;margin:5cqw 0 0;text-align:center;font-family:var(--disp);font-weight:600;font-size:4.4cqw;color:#FFD58A}
+.qcard .pillars{position:relative;margin-top:auto;padding-top:6cqw;display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
+.qcard .pillars span{font-size:2.7cqw;line-height:1.25;font-weight:600;padding:0 1cqw;border-left:.3cqw solid rgba(255,255,255,.3)}
+.qcard .pillars span:first-child{border-left:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <header class="site">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="#F5A300" stroke-width="2"/><path d="M16 5 L19.2 16 L16 27 L12.8 16 Z" fill="#F5A300"/><path d="M5 16 L16 12.8 L27 16 L16 19.2 Z" fill="currentColor" opacity=".85"/></svg>
+      <div><b>Frontier</b><span>Study. Prepare. Shine.</span></div>
+    </div>
+    <div id="who" hidden></div>
+  </header>
+  <nav class="tabs" id="nav" role="tablist" aria-label="Sections" hidden>
+    <button class="tab" role="tab" data-act="nav" data-v="home">Today</button>
+    <button class="tab" role="tab" data-act="nav" data-v="board">Leaderboard</button>
+    <button class="tab" role="tab" data-act="nav" data-v="history">My results</button>
+  </nav>
+  <main id="app"></main>
+  <footer>Practice CBT, not affiliated with JAMB.</footer>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ============ ONE LINE TO EDIT: paste your Apps Script web app address between the quotes ============ */
+var API_URL = 'PASTE_YOUR_WEB_APP_URL_HERE';
+/* ====================================================================================================== */
+
+var NAMES = { english: 'English', mathematics: 'Mathematics', physics: 'Physics', chemistry: 'Chemistry', biology: 'Biology', economics: 'Economics', government: 'Government', crs: 'Christian Religious Studies', literature: 'Literature in English', agriculture: 'Agricultural Science' };
+var ELECTIVES = ['mathematics', 'physics', 'chemistry', 'biology', 'economics', 'government', 'crs', 'literature', 'agriculture'];
+var GLYPH = { english: 'Aa', mathematics: 'π', physics: 'Ω', chemistry: 'H₂O', biology: 'DNA', economics: '₦', government: 'Gov', crs: 'CRS', literature: 'Lit', agriculture: 'Agr' };
+var L = ['A', 'B', 'C', 'D'];
+
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var app = $('#app');
+
+/* ---------- storage (per device, guarded) ---------- */
+var mem = {};
+var store = {
+  get: function (k) { try { var v = localStorage.getItem(k); return v === null ? (mem[k] === undefined ? null : mem[k]) : v; } catch (e) { return mem[k] === undefined ? null : mem[k]; } },
+  set: function (k, v) { mem[k] = v; try { localStorage.setItem(k, v); } catch (e) {} },
+  del: function (k) { delete mem[k]; try { localStorage.removeItem(k); } catch (e) {} }
+};
+
+/* ---------- helpers ---------- */
+function esc(s) { return String(s === undefined || s === null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function safe(s) { return esc(s).replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>'); }
+function plain(h) { return String(h).replace(/<u>(.*?)<\/u>/g, '*$1*').replace(/<[^>]+>/g, ''); }
+function fmt(sec) { sec = Math.max(0, Math.round(sec)); var m = Math.floor(sec / 60), s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
+function names(list) { return list.map(function (s) { return NAMES[s] || s; }).join(', '); }
+function api(action, data) {
+  if (API_URL.indexOf('PASTE') === 0) return Promise.resolve({ ok: false, error: 'not_configured' });
+  var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var to = setTimeout(function () { if (ctl) ctl.abort(); }, 30000);
+  return fetch(API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action: action }, data || {})), signal: ctl ? ctl.signal : undefined })
+    .then(function (r) { return r.json(); })
+    .catch(function () { return { ok: false, error: 'network' }; })
+    .then(function (r) { clearTimeout(to); return r; });
+}
+var MSG = {
+  bad_login: 'That ID and PIN don’t match. Check both, or ask your teacher to reset your PIN.',
+  bad_code: 'That invite code isn’t valid, has expired, or was already used. Check it or ask your teacher.',
+  slow_down: 'Too many attempts. Please wait a few minutes and try again.',
+  weak_pin: 'Choose a PIN that isn’t easy to guess. Avoid 0000, 1234 and repeated digits.',
+  bad_subjects: 'Please choose exactly three subjects.',
+  pending: 'Your account is waiting for approval. Your teacher will approve it soon.',
+  disabled: 'This account is not active. Please ask your teacher.',
+  network: 'Can’t reach Frontier. Check your data connection and try again.',
+  not_configured: 'This page is not connected yet. The teacher needs to paste the web app address into the page.',
+  limit: 'You have used all of today’s attempts for this test.',
+  expired: 'That attempt took too long and expired. Please start again.',
+  bad_start: 'That attempt could not be checked. Please start again.',
+  server: 'We’re checking this one. We’ll get back to you.'
+};
+function errText(r) {
+  if (r && r.error === 'locked') return 'Too many wrong tries. Try again in ' + (r.minutes || 15) + ' minutes.';
+  return MSG[r && r.error] || MSG.server;
+}
+function setMsg(text, kind) { var m = $('#msg'); if (m) { m.textContent = text || ''; m.className = 'msg' + (kind ? ' ' + kind : ''); } }
+function busy(btn, on) { if (btn) { btn.disabled = !!on; } }
+
+/* ---------- state ---------- */
+var S = { token: null, id: null, name: '', subjects: [], view: 'login', today: null, board: null, hist: null, note: '' };
+var J = { code: '', id: '', subs: [], confirm: false };
+var R = null, timerId = null;
+
+function saveSession() { store.set('fr_session', JSON.stringify({ token: S.token, id: S.id, name: S.name, subjects: S.subjects })); }
+function clearSession() { store.del('fr_session'); S.token = null; S.id = null; S.name = ''; S.subjects = []; S.today = null; R = null; stopTimer(); }
+function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+function authed(action, data) {
+  return api(action, Object.assign({ token: S.token }, data || {})).then(function (r) {
+    if (r && r.error === 'auth') { clearSession(); S.note = 'Your session ended. Please log in again.'; go('login'); return null; }
+    if (r && r.error === 'must_change') { go('change'); return null; }
+    return r;
+  });
+}
+
+/* ---------- navigation ---------- */
+function go(view) {
+  S.view = view;
+  if (view !== 'cbt') stopTimer();
+  render();
+  if (view === 'home') loadToday();
+  if (view === 'board') loadBoard();
+  if (view === 'history') loadHistory();
+}
+function chrome() {
+  var logged = !!S.token, who = $('#who'), nav = $('#nav');
+  who.hidden = !logged;
+  who.innerHTML = logged ? '<strong>' + esc(S.id) + '</strong><br>' + esc(names(['english'].concat(S.subjects))) + ' <button data-act="logout" type="button">Log out</button>' : '';
+  var main = ['home', 'board', 'history'].indexOf(S.view) >= 0;
+  nav.hidden = !(logged && main);
+  $$('.tab', nav).forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.v === S.view)); });
+  $('#wrap').className = 'wrap' + (S.view === 'admin' ? ' wide' : '');
+}
+function render() {
+  chrome();
+  var v = S.view, h = '';
+  if (v === 'login') h = vLogin();
+  else if (v === 'join') h = vJoin();
+  else if (v === 'joined') h = vJoined();
+  else if (v === 'change') h = vChange();
+  else if (v === 'home') h = vHome();
+  else if (v === 'cbt') h = vCbt();
+  else if (v === 'result') h = vResult();
+  else if (v === 'board') h = vBoard();
+  else if (v === 'history') h = vHistory();
+  else if (v === 'admin') h = vAdmin();
+  app.innerHTML = h;
+  if (v === 'cbt') updateTimer();
+}
+
+/* ---------- login / join ---------- */
+function vLogin() {
+  return '<div class="box"><h2>Log in</h2><p class="muted">Use your Frontier ID and PIN.</p>'
+    + (S.note ? '<div class="fb n">' + esc(S.note) + '</div>' : '')
+    + '<label class="field"><span>Frontier ID</span><input class="inp" id="lid" placeholder="FR-0000" autocomplete="username" autocapitalize="characters"></label>'
+    + '<label class="field"><span>PIN</span><input class="inp" id="lpin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password"></label>'
+    + '<button class="btn block" data-act="login" type="button">Log in</button><p class="msg" id="msg" role="alert"></p>'
+    + '<p class="muted">New here? <button class="link" data-act="to-join" type="button">Join with an invite code</button></p></div>';
+}
+function vJoin() {
+  var h = '<div class="box"><h2>Join Frontier</h2><p class="muted">Your teacher gives you a one-time invite code. No phone number, school or date of birth is needed.</p>';
+  if (!J.id) {
+    h += '<label class="field"><span>1. Invite code</span><input class="inp" id="jcode" value="' + esc(J.code) + '" placeholder="XXXX-XXXX" autocapitalize="characters" autocomplete="off"></label>'
+      + '<button class="btn" data-act="check-code" type="button">Check code</button>';
+  } else {
+    h += '<div class="idcard"><small>Your Frontier ID</small><div class="big">' + esc(J.id) + '</div><small>This is the name that appears on the leaderboard.</small></div>'
+      + '<label class="field"><span>2. First name (optional)</span><input class="inp" id="jname" maxlength="20" autocomplete="off"><small>Only your teacher can see this. It is never shown to other students.</small></label>'
+      + '<label class="field"><span>3. Choose a 4-digit PIN</span><input class="inp" id="jpin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"><small>Don’t use your phone or bank PIN.</small></label>'
+      + '<label class="field"><span>Type the PIN again</span><input class="inp" id="jpin2" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"></label>'
+      + '<div class="field"><span>4. Your subjects</span><div class="chips" id="jchips">'
+      + '<button class="chip locked" disabled aria-pressed="true" type="button">English (compulsory)</button>'
+      + ELECTIVES.map(function (s) {
+        var on = J.subs.indexOf(s) >= 0, full = J.subs.length >= 3 && !on;
+        return '<button class="chip" data-act="pick" data-s="' + s + '" aria-pressed="' + on + '"' + (full ? ' disabled' : '') + ' type="button">' + esc(NAMES[s]) + '</button>';
+      }).join('') + '</div><small>Check your course’s required subjects on JAMB’s website before you lock. ' + (3 - J.subs.length > 0 ? 'Choose ' + (3 - J.subs.length) + ' more.' : 'Three chosen.') + '</small></div>'
+      + '<button class="btn" data-act="lock" type="button"' + (J.subs.length === 3 ? '' : ' disabled') + '>Lock my subjects</button>';
+    if (J.confirm) {
+      h += '<div class="fb b"><b>Lock English, ' + esc(names(J.subs)) + ' to ' + esc(J.id) + '?</b>After this you can’t change subjects yourself. Ask your teacher if you make a mistake.'
+        + '<div class="row" style="margin-top:10px"><button class="btn" data-act="register" type="button">Yes, lock them in</button><button class="btn ghost" data-act="unconfirm" type="button">Go back</button></div></div>';
+    }
+  }
+  return h + '<p class="msg" id="msg" role="alert"></p><p class="muted"><button class="link" data-act="to-login" type="button">Back to log in</button></p></div>';
+}
+function vJoined() {
+  return '<div class="box"><h2>You’re in</h2><p class="muted">Screenshot this and keep it. You need the ID and PIN each time.</p>'
+    + '<div class="idcard"><small>Frontier ID</small><div class="big">' + esc(J.id) + '</div><small>' + esc(names(['english'].concat(J.subs))) + ' (locked)</small></div>'
+    + (J.pending ? '<div class="fb n">Your account is waiting for your teacher’s approval. You can log in once it is approved.</div>' : '<button class="btn" data-act="login-now" type="button">Log in now</button>')
+    + '<p class="msg" id="msg" role="alert"></p></div>';
+}
+function vChange() {
+  return '<div class="box"><h2>Choose a new PIN</h2><p class="muted">Your teacher reset your PIN. Choose a new 4-digit PIN that only you know.</p>'
+    + '<label class="field"><span>New PIN</span><input class="inp" id="npin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"></label>'
+    + '<label class="field"><span>Type it again</span><input class="inp" id="npin2" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"></label>'
+    + '<button class="btn" data-act="change-pin" type="button">Save PIN</button><p class="msg" id="msg" role="alert"></p></div>';
+}
+
+/* ---------- home ---------- */
+function loadToday() {
+  S.today = null; render();
+  authed('today').then(function (r) {
+    if (!r) return;
+    S.today = r.ok ? r : { error: r }; if (S.view === 'home') render();
+  });
+}
+function vHome() {
+  var t = S.today;
+  if (!t) return '<div class="box"><p class="muted">Loading today…</p></div>';
+  if (t.error) return '<div class="box"><div class="fb b">' + esc(errText(t.error)) + '</div><button class="btn" data-act="reload" type="button">Try again</button></div>';
+  if (t.none) return '<div class="box"><h2>Today</h2><p>No CBT is scheduled for today. Check the group for today’s post, and enjoy the rest.</p></div>';
+  var h = '<div class="box"><span class="tag">Week ' + esc(t.week) + '</span><span class="tag">' + esc({ daily: 'Daily CBT', weekly_test: 'Weekly test', diagnostic: 'Diagnostic', mock: 'Mock exam' }[t.kind] || t.kind) + '</span>'
+    + (t.human_line ? '<p class="human">' + esc(t.human_line) + '</p>' : '') + '</div>';
+  if (t.study_cards.length) {
+    h += '<div class="box"><h3>Study</h3>' + t.study_cards.map(function (c) {
+      return '<details class="card"><summary>' + esc(c.title) + '</summary><p><b>Rule.</b> ' + safe(c.rule) + '</p><p><b>Example.</b> ' + safe(c.example) + '</p>'
+        + '<p><a href="' + esc(c.video_link) + '" target="_blank" rel="noopener noreferrer">Find a video on YouTube</a></p></details>';
+    }).join('') + '</div>';
+  }
+  if (t.qotd.length) {
+    h += '<div class="box"><h3>Question of the day</h3>' + t.qotd.map(function (q) {
+      var r = (S.qres || {})[q.id];
+      return '<p class="qtext" style="margin-top:10px"><span class="tag">' + esc(NAMES[q.subject] || q.subject) + '</span><span class="tag ghost">' + esc(q.label) + '</span><br>' + safe(q.q) + '</p><ul class="qo">'
+        + q.o.map(function (o, i) { return '<li class="' + (r && r.answer === L[i] ? 'right' : '') + '"><span class="l">' + (r && r.answer === L[i] ? '✓' : L[i]) + '</span><span>' + safe(o) + '</span></li>'; }).join('') + '</ul>'
+        + (r ? '<div class="fb g"><b>Answer: ' + esc(r.answer) + '</b>' + safe(r.solution) + '</div>'
+          : (t.qotd_revealed ? '<p><button class="btn ghost" data-act="show-qotd" data-id="' + esc(q.id) + '" type="button">Show the answer</button></p>'
+            : '<p class="muted">Drop your answer in the group. The answer comes this evening.</p>'));
+    }).join('') + '</div>';
+  }
+  if (!t.questions.length) return h + '<div class="box"><p>No questions are ready for your subjects today. Check the group for today’s post.</p></div>';
+  var n = t.questions.length, total = n * t.seconds_per_question, done = t.attempts.length;
+  h += '<div class="box"><h3>' + esc(t.kind === 'daily' ? 'Today’s CBT' : 'Your test') + '</h3><p class="muted">' + n + ' questions from ' + esc(names(['english'].concat(S.subjects))) + '.</p>';
+  if (t.modes.length > 1) {
+    h += '<div class="modes"><label class="mode"><input type="radio" name="mode" value="practice" checked><span><b>Practice mode</b>You see the answer and a one-line solution after every question. No timer.</span></label>'
+      + '<label class="mode"><input type="radio" name="mode" value="test"><span><b>Test mode</b>' + fmt(total) + ' on the clock, no feedback until you submit, like the real UTME.</span></label></div>';
+  } else {
+    h += '<div class="fb n">Timed: ' + fmt(total) + ' (' + t.seconds_per_question + ' seconds per question). Answers are shown after you submit.</div><input type="radio" name="mode" value="test" checked hidden>';
+  }
+  if (done) h += '<div class="fb n"><b>Done ' + done + ' time' + (done > 1 ? 's' : '') + ' today.</b>' + t.attempts.map(function (a) { return esc(a.mode) + ' ' + a.score + '/' + a.out_of; }).join(', ') + '</div>';
+  return h + '<button class="btn block" data-act="start" type="button">' + (done ? 'Try again' : 'Start') + '</button><p class="msg" id="msg" role="alert"></p></div>';
+}
+
+/* ---------- CBT ---------- */
+function startCbt(mode) {
+  var t = S.today;
+  authed('start', { mode: mode }).then(function (r) {
+    if (!r) return;
+    if (!r.ok) { setMsg(errText(r), 'err'); busy($('[data-act="start"]'), false); return; }
+    R = { qs: t.questions, mode: r.mode, secs: r.seconds, n: r.n, startToken: r.startToken, i: 0, ans: {}, res: {}, confirm: false, wait: false, deadline: Date.now() + r.n * r.seconds * 1000 };
+    S.view = 'cbt'; render();
+    if (R.mode === 'test') { stopTimer(); timerId = setInterval(tick, 500); }
+  });
+}
+function updateTimer() {
+  var el = $('#timer'); if (!el || !R) return;
+  var left = (R.deadline - Date.now()) / 1000; el.textContent = fmt(left); el.classList.toggle('low', left <= 60);
+}
+function tick() { if (!R || R.mode !== 'test') { stopTimer(); return; } updateTimer(); if (R.deadline - Date.now() <= 0) { finish(); } }
+function vCbt() {
+  var q = R.qs[R.i], mode = R.mode, n = R.n, okc = 0, noc = 0;
+  Object.keys(R.res).forEach(function (k) { if (R.res[k].correct) okc++; else noc++; });
+  var segs = R.qs.map(function (x, i) {
+    var c = 'seg';
+    if (i === R.i) c += ' cur'; else if (mode === 'practice' && R.res[x.id]) c += R.res[x.id].correct ? ' ok' : ' no'; else if (R.ans[x.id]) c += ' ans';
+    return '<i class="' + c + '"></i>';
+  }).join('');
+  var grid = R.qs.map(function (x, i) {
+    var c = 'gq';
+    if (i === R.i) c += ' cur'; else if (mode === 'practice' && R.res[x.id]) c += R.res[x.id].correct ? ' ok' : ' no'; else if (R.ans[x.id]) c += ' ans';
+    return '<button class="' + c + '" data-act="jump" data-i="' + i + '" type="button" aria-label="Question ' + (i + 1) + '">' + (i + 1) + '</button>';
+  }).join('');
+  var picked = R.ans[q.id], res = R.res[q.id];
+  var opts = q.o.map(function (t, i) {
+    var c = 'opt', dis = R.wait ? ' disabled' : '';
+    if (mode === 'practice' && res) { dis = ' disabled'; if (L[i] === res.answer) c += ' right'; else if (L[i] === picked) c += ' wrong'; }
+    else if (picked === L[i]) c += ' sel';
+    return '<button class="' + c + '" data-act="opt" data-l="' + L[i] + '"' + dis + ' type="button"><span class="l">' + L[i] + '</span><span>' + safe(t) + '</span></button>';
+  }).join('');
+  var fb = (mode === 'practice' && res) ? '<div class="fb ' + (res.correct ? 'g' : 'b') + '"><b>' + (res.correct ? 'Correct.' : 'Not quite. The answer is ' + res.answer + '.') + '</b>' + safe(res.solution) + '</div>' : '';
+  var last = R.i === n - 1, need = mode === 'practice' && !res;
+  var conf = '';
+  if (R.confirm) {
+    var un = R.qs.filter(function (x) { return !R.ans[x.id]; }).length;
+    conf = '<div class="fb b"><b>You have ' + un + ' unanswered question' + (un > 1 ? 's' : '') + '.</b>Submit anyway, or keep going.<div class="row" style="margin-top:10px"><button class="btn" data-act="finish" type="button">Submit anyway</button><button class="btn ghost" data-act="keep" type="button">Keep going</button></div></div>';
+  }
+  return '<div class="box"><div class="chead"><div><h2>' + esc({ daily: 'Daily CBT', weekly_test: 'Weekly test', diagnostic: 'Diagnostic', mock: 'Mock exam' }[S.today.kind] || 'CBT') + '</h2><p class="muted" style="margin:2px 0 0">' + (mode === 'test' ? 'Test mode' : 'Practice mode') + '</p></div>'
+    + (mode === 'test' ? '<div class="timer" id="timer" role="timer">' + fmt(R.n * R.secs) + '</div>' : '') + '</div>'
+    + '<div class="prog"><div class="segs">' + segs + '</div><span class="count">' + (R.i + 1) + ' / ' + n + '</span>' + (mode === 'practice' ? '<span class="pill b">✗ ' + noc + '</span><span class="pill g">✓ ' + okc + '</span>' : '') + '</div>'
+    + '<div class="grid" role="group" aria-label="Question map">' + grid + '</div>'
+    + '<div><span class="tag">' + esc(NAMES[q.subject] || q.subject) + '</span><span class="tag ghost">' + esc(q.label) + '</span></div>'
+    + '<h3 class="qno">Question ' + (R.i + 1) + '</h3><p class="qtext">' + safe(q.q) + '</p>' + opts + fb + conf
+    + '<div class="nav"><button class="btn ghost" data-act="back" type="button"' + (R.i === 0 ? ' disabled' : '') + '>Previous</button>'
+    + (last ? '<button class="btn" data-act="submit" type="button"' + (need ? ' disabled' : '') + '>' + (mode === 'test' ? 'Submit test' : 'See my score') + '</button>'
+      : '<button class="btn" data-act="next" type="button"' + (need ? ' disabled' : '') + '>Next</button>') + '</div>'
+    + '<p class="msg" id="msg" role="alert"></p></div>';
+}
+function choose(letter) {
+  var q = R.qs[R.i];
+  if (R.wait) return;
+  if (R.mode === 'practice') {
+    if (R.res[q.id]) return;
+    R.ans[q.id] = letter; R.wait = true; render();
+    authed('check', { qid: q.id, choice: letter }).then(function (r) {
+      R.wait = false;
+      if (!r) return;
+      if (!r.ok) { delete R.ans[q.id]; render(); setMsg(errText(r), 'err'); return; }
+      R.res[q.id] = { correct: r.correct, answer: r.answer, solution: r.solution }; render();
+    });
+  } else { R.ans[q.id] = letter; render(); }
+}
+function finish() {
+  if (!R || R.sending) return;
+  R.sending = true; R.confirm = false; stopTimer();
+  authed('submit', { startToken: R.startToken, mode: R.mode, answers: R.ans }).then(function (r) {
+    if (!r) return;
+    if (!r.ok) { R.sending = false; render(); setMsg(errText(r), 'err'); return; }
+    S.result = r; R = null; go('result');
+  });
+}
+function vResult() {
+  var r = S.result, bars = Object.keys(r.by_subject).map(function (s) {
+    var b = r.by_subject[s], pct = Math.round(b.c / b.t * 100);
+    return '<div class="bar"><span>' + esc(NAMES[s] || s) + '</span><div class="track"><i style="width:' + pct + '%"></i></div><span>' + b.c + '/' + b.t + '</span></div>';
+  }).join('');
+  var rev = r.review.map(function (x, i) {
+    var st = !x.yours ? 'sk' : (x.correct ? 'ok' : 'no');
+    return '<div class="rev"><div class="h"><span class="mk ' + st + '">' + (st === 'ok' ? '✓' : (st === 'no' ? '✗' : '–')) + '</span>Question ' + (i + 1) + '<span class="tag">' + esc(NAMES[x.subject] || x.subject) + '</span></div><p>' + safe(x.q) + '</p>'
+      + '<p class="muted">Your answer: ' + (x.yours ? esc(x.yours) + '. ' + safe(x.o[L.indexOf(x.yours)]) : 'not answered') + '</p><p><b>Correct: ' + esc(x.answer) + '. ' + safe(x.o[L.indexOf(x.answer)]) + '</b></p><p class="muted">' + safe(x.solution) + '</p></div>';
+  }).join('');
+  return '<div class="box"><h2>Your result</h2><p style="margin:14px 0 0"><span class="score">' + r.score + '/' + r.out_of + '</span> <span class="muted">' + Math.round(r.score / r.out_of * 100) + '%</span></p>'
+    + (r.late ? '<div class="fb n">You went over the time limit, so this attempt is marked late and won’t count towards the leaderboard.</div>' : '')
+    + (r.mode === 'practice' ? '<div class="fb n">This was a practice attempt. Test mode attempts count towards the leaderboard.</div>' : '')
+    + '<div class="bars">' + bars + '</div><button class="btn" data-act="home" type="button">Back to today</button><h3 style="margin-top:22px">Review</h3>' + rev + '</div>';
+}
+
+/* ---------- board / history ---------- */
+function loadBoard() { S.board = null; render(); authed('leaderboard').then(function (r) { if (!r) return; S.board = r; if (S.view === 'board') render(); }); }
+function vBoard() {
+  var b = S.board; if (!b) return '<div class="box"><p class="muted">Loading…</p></div>';
+  if (!b.ok) return '<div class="box"><div class="fb b">' + esc(errText(b)) + '</div></div>';
+  function list(title, note, rows, unit) {
+    return '<div class="box"><h3>' + title + '</h3><p class="muted">' + note + '</p>' + (rows.length
+      ? '<table class="t"><tbody>' + rows.map(function (x) { return '<tr' + (x.you ? ' style="font-weight:700"' : '') + '><td class="rank">' + x.rank + '</td><td>' + esc(x.id) + (x.you ? ' (you)' : '') + '</td><td>' + x.value + unit + '</td></tr>'; }).join('') + '</tbody></table>'
+      : '<p>Not enough results yet. Take your tests in test mode to appear here.</p>') + '</div>';
+  }
+  return list('Most improved', 'Test-mode average this week compared with last week.', b.improvement, ' points') + list('Longest streak', 'Days in a row with at least one CBT.', b.streak, ' days');
+}
+function loadHistory() { S.hist = null; render(); authed('history').then(function (r) { if (!r) return; S.hist = r; if (S.view === 'history') render(); }); }
+function vHistory() {
+  var h = S.hist; if (!h) return '<div class="box"><p class="muted">Loading…</p></div>';
+  if (!h.ok) return '<div class="box"><div class="fb b">' + esc(errText(h)) + '</div></div>';
+  if (!h.attempts.length) return '<div class="box"><h2>My results</h2><p>Nothing yet. Your results will appear here after your first CBT.</p></div>';
+  return '<div class="box"><h2>My results</h2><div style="overflow-x:auto"><table class="t"><thead><tr><th>Date</th><th>Type</th><th>Mode</th><th>Score</th><th>Time</th></tr></thead><tbody>'
+    + h.attempts.map(function (a) { return '<tr><td>' + esc(a.date) + '</td><td>' + esc(a.kind.replace('_', ' ')) + '</td><td>' + esc(a.mode) + (a.attempt_no > 1 ? ' (try ' + a.attempt_no + ')' : '') + '</td><td>' + a.score + '/' + a.out_of + '</td><td>' + fmt(a.time_sec) + '</td></tr>'; }).join('')
+    + '</tbody></table></div></div>';
+}
+
+/* ---------- admin: cards for WhatsApp (teacher only) ---------- */
+var A = { key: '', date: '', data: null, i: 0, view: 'question', err: '' };
+function pillars() { return '<div class="pillars"><span>Quality<br>Learning</span><span>Focused<br>Preparation</span><span>Supportive<br>Community</span><span>Measurable<br>Progress</span></div>'; }
+function cardHTML(c, view) {
+  var ans = view === 'answer', opts = c.o.map(function (t, i) { var ok = ans && L[i] === c.answer; return '<li class="' + (ok ? 'right' : '') + '"><span class="ltr">' + (ok ? '✓' : L[i]) + '</span><span>' + safe(t) + '</span></li>'; }).join('');
+  var bottom = ans ? '<div class="solbox"><span class="k">Answer: ' + esc(c.answer) + '. ' + safe(c.o[L.indexOf(c.answer)]) + '</span><span class="v">' + safe(c.solution) + '</span></div>'
+    : '<div class="ribbon"><span>Drop your answer before checking</span><span aria-hidden="true">↓</span></div>';
+  return '<article class="qcard"><svg class="rose" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="100" cy="100" r="70" fill="none" stroke="currentColor" stroke-width="1"/><path d="M100 8 L114 86 L192 100 L114 114 L100 192 L86 114 L8 100 L86 86 Z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'
+    + '<div class="top"><div class="lg"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="#FFB020" stroke-width="2"/><path d="M16 5 L19.2 16 L16 27 L12.8 16 Z" fill="#FFB020"/><path d="M5 16 L16 12.8 L27 16 L16 19.2 Z" fill="#fff" opacity=".85"/></svg><div><b>Frontier</b><span>Study. Prepare. Shine.</span></div></div><span class="day">Week ' + esc(c.week) + '</span></div>'
+    + '<h3 class="ttl">' + (ans ? 'The answer' : 'Question of the day') + '</h3>'
+    + '<div class="subj"><span class="g">' + esc(GLYPH[c.subject] || '') + '</span><span class="st"><b>' + esc(NAMES[c.subject] || c.subject) + '</b><span>' + esc(c.topic) + '</span></span></div>'
+    + '<div class="panel"><p class="q">' + safe(c.q) + '</p><ol>' + opts + '</ol><p class="src">' + esc(c.label) + '</p></div>' + bottom
+    + '<p class="hl">' + esc(ans ? 'Got it wrong? Good. Now you’ll remember it.' : c.human_line) + '</p>' + pillars() + '</article>';
+}
+function waText(c, view) {
+  var head = '*FRONTIER | ' + (view === 'answer' ? 'The answer' : 'Question of the Day') + '*\n*' + (NAMES[c.subject] || c.subject) + ': ' + c.topic + '*\n\n';
+  if (view === 'answer') return head + plain(c.q) + '\n\n*Answer: ' + c.answer + '. ' + plain(c.o[L.indexOf(c.answer)]) + '*\n' + plain(c.solution) + '\n\nGot it wrong? Good. Now you’ll remember it.\nStudy. Prepare. Shine.';
+  return head + plain(c.q) + '\n\n' + c.o.map(function (t, i) { return L[i] + '. ' + plain(t); }).join('\n') + '\n\nDrop your answer before checking 👇\n' + c.human_line + '\nStudy. Prepare. Shine.';
+}
+function vAdmin() {
+  var h = '<div class="box"><h2>Cards for WhatsApp</h2>';
+  if (!A.data) {
+    return h + '<p class="muted">Teacher only. Enter your admin key (in Apps Script, Project Settings, Script properties).</p><label class="field"><span>Admin key</span><input class="inp" id="akey" type="password" autocomplete="off" value="' + esc(A.key) + '"></label>'
+      + '<button class="btn" data-act="admin-load" type="button">Show cards</button>' + (A.err ? '<p class="msg err" id="msg">' + esc(A.err) + '</p>' : '<p class="msg" id="msg"></p>') + '</div>';
+  }
+  var d = A.data, c = d.cards[A.i];
+  h += '<div class="row" style="margin-bottom:12px"><label class="field" style="margin:0"><span>Date</span><select class="inp" id="adate">' + (d.dates.indexOf(d.date) < 0 ? '<option>' + esc(d.date) + '</option>' : '')
+    + d.dates.map(function (x) { return '<option' + (x === d.date ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></label></div>';
+  if (!c) return h + '<p>No question of the day is scheduled for ' + esc(d.date) + '.</p></div>';
+  h += '<div class="chips">' + d.cards.map(function (x, i) { return '<button class="chip" data-act="acard" data-i="' + i + '" aria-pressed="' + (i === A.i) + '" type="button">' + esc(NAMES[x.subject] || x.subject) + '</button>'; }).join('') + '</div></div>';
+  return h + '<div class="admin"><div><div class="seg2" role="group" aria-label="Card type"><button data-act="aview" data-v="question" aria-pressed="' + (A.view === 'question') + '">Question card</button><button data-act="aview" data-v="answer" aria-pressed="' + (A.view === 'answer') + '">Answer card</button></div>'
+    + '<label class="field"><span>Plain-text version for WhatsApp</span><textarea class="wa" id="wa" readonly>' + esc(waText(c, A.view)) + '</textarea></label><button class="btn ghost" data-act="wasel" type="button">Select all text</button>'
+    + '<p class="muted">Screenshot the card to post it. The card is drawn from your Schedule tab.</p></div><div class="cardcol">' + cardHTML(c, A.view) + '</div></div>';
+}
+function loadAdmin(date) {
+  api('adminCards', { adminKey: A.key, date: date || A.date || '' }).then(function (r) {
+    if (!r.ok) { A.err = r.error === 'auth' ? 'That key is not correct.' : errText(r); A.data = null; render(); return; }
+    A.data = r; A.date = r.date; A.err = ''; if (A.i >= r.cards.length) A.i = 0; render();
+  });
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-act]'); if (!b) return;
+  var act = b.dataset.act;
+  if (act === 'nav') { go(b.dataset.v); return; }
+  if (act === 'logout') { clearSession(); S.note = ''; go('login'); return; }
+  if (act === 'to-join') { J = { code: '', id: '', subs: [], confirm: false }; go('join'); return; }
+  if (act === 'to-login') { go('login'); return; }
+  if (act === 'reload') { loadToday(); return; }
+  if (act === 'home') { go('home'); return; }
+  if (act === 'login') {
+    var id = $('#lid').value.trim().toUpperCase(), pin = $('#lpin').value; busy(b, true);
+    api('login', { id: id, pin: pin }).then(function (r) {
+      busy(b, false);
+      if (!r.ok) { setMsg(errText(r), 'err'); return; }
+      S.token = r.token; S.id = r.id; S.name = r.name; S.subjects = r.subjects; S.note = ''; saveSession();
+      go(r.mustChange ? 'change' : 'home');
+    });
+    return;
+  }
+  if (act === 'check-code') {
+    J.code = $('#jcode').value.trim(); busy(b, true);
+    api('checkInvite', { code: J.code }).then(function (r) { busy(b, false); if (!r.ok) { setMsg(errText(r), 'err'); return; } J.id = r.id; render(); });
+    return;
+  }
+  if (act === 'pick') {
+    var s = b.dataset.s, i = J.subs.indexOf(s);
+    if (i >= 0) J.subs.splice(i, 1); else if (J.subs.length < 3) J.subs.push(s);
+    J.confirm = false; J.keep = { name: $('#jname').value, pin: $('#jpin').value, pin2: $('#jpin2').value }; render();
+    $('#jname').value = J.keep.name; $('#jpin').value = J.keep.pin; $('#jpin2').value = J.keep.pin2; return;
+  }
+  if (act === 'lock') {
+    var p1 = $('#jpin').value, p2 = $('#jpin2').value;
+    if (!/^\d{4}$/.test(p1)) { setMsg('Your PIN must be exactly 4 digits.', 'err'); return; }
+    if (p1 !== p2) { setMsg('The two PINs don’t match. Type them again.', 'err'); return; }
+    J.confirm = true; J.keep = { name: $('#jname').value, pin: p1, pin2: p2 }; render();
+    $('#jname').value = J.keep.name; $('#jpin').value = p1; $('#jpin2').value = p2; return;
+  }
+  if (act === 'unconfirm') { J.confirm = false; render(); return; }
+  if (act === 'register') {
+    busy(b, true);
+    var k = { name: $('#jname').value, pin: $('#jpin').value };
+    api('register', { code: J.code, pin: k.pin, name: k.name, subjects: J.subs }).then(function (r) {
+      busy(b, false);
+      if (!r.ok) { setMsg(errText(r), 'err'); return; }
+      J.id = r.id; J.pin = k.pin; J.pending = r.status === 'pending'; S.view = 'joined'; render();
+    });
+    return;
+  }
+  if (act === 'login-now') {
+    busy(b, true);
+    api('login', { id: J.id, pin: J.pin }).then(function (r) {
+      busy(b, false);
+      if (!r.ok) { setMsg(errText(r), 'err'); return; }
+      S.token = r.token; S.id = r.id; S.name = r.name; S.subjects = r.subjects; saveSession(); J.pin = ''; go('home');
+    });
+    return;
+  }
+  if (act === 'change-pin') {
+    var n1 = $('#npin').value, n2 = $('#npin2').value;
+    if (!/^\d{4}$/.test(n1)) { setMsg('Your PIN must be exactly 4 digits.', 'err'); return; }
+    if (n1 !== n2) { setMsg('The two PINs don’t match. Type them again.', 'err'); return; }
+    busy(b, true);
+    authed('changePin', { pin: n1 }).then(function (r) { busy(b, false); if (!r) return; if (!r.ok) { setMsg(errText(r), 'err'); return; } go('home'); });
+    return;
+  }
+  if (act === 'show-qotd') {
+    var qid = b.dataset.id; S.qres = S.qres || {}; busy(b, true);
+    authed('check', { qid: qid, choice: 'A' }).then(function (r) { if (!r) return; if (!r.ok) { busy(b, false); return; } S.qres[qid] = { answer: r.answer, solution: r.solution }; render(); });
+    return;
+  }
+  if (act === 'start') { var m = ($('input[name="mode"]:checked') || { value: 'test' }).value; busy(b, true); startCbt(m); return; }
+  if (act === 'opt') { choose(b.dataset.l); return; }
+  if (act === 'jump') { R.i = parseInt(b.dataset.i, 10); R.confirm = false; render(); return; }
+  if (act === 'next') { R.i = Math.min(R.i + 1, R.n - 1); R.confirm = false; render(); return; }
+  if (act === 'back') { R.i = Math.max(R.i - 1, 0); R.confirm = false; render(); return; }
+  if (act === 'submit') {
+    if (R.qs.some(function (x) { return !R.ans[x.id]; })) { R.confirm = true; render(); return; }
+    finish(); return;
+  }
+  if (act === 'keep') { R.confirm = false; render(); return; }
+  if (act === 'finish') { finish(); return; }
+  if (act === 'admin-load') { A.key = $('#akey').value.trim(); A.i = 0; loadAdmin(''); return; }
+  if (act === 'acard') { A.i = parseInt(b.dataset.i, 10); render(); return; }
+  if (act === 'aview') { A.view = b.dataset.v; render(); return; }
+  if (act === 'wasel') { var t = $('#wa'); t.focus(); t.select(); return; }
+});
+document.addEventListener('change', function (e) { if (e.target && e.target.id === 'adate') loadAdmin(e.target.value); });
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter') return;
+  var id = e.target && e.target.id;
+  if (id === 'lid' || id === 'lpin') { var b = $('[data-act="login"]'); if (b) b.click(); }
+  if (id === 'jcode') { var c = $('[data-act="check-code"]'); if (c) c.click(); }
+});
+
+/* ---------- start ---------- */
+(function boot() {
+  if (location.hash === '#admin') { S.view = 'admin'; render(); return; }
+  var raw = store.get('fr_session');
+  if (raw) {
+    try { var s = JSON.parse(raw); if (s && s.token) { S.token = s.token; S.id = s.id; S.name = s.name || ''; S.subjects = s.subjects || []; } } catch (e) { store.del('fr_session'); }
+  }
+  if (S.token) go('home'); else go('login');
+})();
+})();
+</script>
+</body>
+</html>
