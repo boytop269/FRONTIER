@@ -112,6 +112,12 @@ details.card p{margin:8px 0 0}
 .qno{font-size:22px;margin:14px 0 6px}
 .qtext{font-size:18.5px;line-height:1.55;margin:0 0 16px}
 .qtext u,.card u{text-decoration-thickness:2px;text-underline-offset:3px}
+.diagram{margin:4px 0 16px;text-align:center}
+.diagram svg{max-width:100%;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}
+.diagram img{max-width:100%;max-height:340px;height:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+.qcard .card-diagram{margin:0 0 2.6cqw}
+.qcard .card-diagram svg{max-width:100%;height:auto;background:#fff;border:none;border-radius:1.6cqw;padding:2cqw}
+.qcard .card-diagram img{max-width:100%;height:auto;border-radius:1.6cqw;display:block}
 .opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:13px 16px;margin-bottom:10px;cursor:pointer;font-size:17px}
 .opt .l{flex:none;width:32px;height:32px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-weight:700;font-size:15px}
 .opt.sel{border-color:var(--btn);background:var(--surface2)}
@@ -197,7 +203,7 @@ textarea.wa{width:100%;min-height:190px;border-radius:12px;border:1.5px solid va
 'use strict';
 
 /* ============ ONE LINE TO EDIT: paste your Apps Script web app address between the quotes ============ */
-var API_URL = 'https://script.google.com/macros/s/AKfycbxxrgbT2x-8esrJ8b0G1a7jnuzqec-vPmiLnm2QeMFciMS7dBCMr2Z5cH-A69diEZ6l/exec';
+var API_URL = 'https://script.google.com/macros/s/AKfycbxJyQKA1PIG27cNgGr8k69_GZmtsYLd1SOgUf24If9miYhdj-kLs2m46K-KjzWYbPJn/exec';
 /* ====================================================================================================== */
 
 var NAMES = { english: 'English', mathematics: 'Mathematics', physics: 'Physics', chemistry: 'Chemistry', biology: 'Biology', economics: 'Economics', government: 'Government', crs: 'Christian Religious Studies', literature: 'Literature in English', agriculture: 'Agricultural Science' };
@@ -220,6 +226,10 @@ var store = {
 /* ---------- helpers ---------- */
 function esc(s) { return String(s === undefined || s === null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function safe(s) { return esc(s).replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>'); }
+function diagram(svg, img) {
+  if (img) return '<div class="diagram"><img src="' + esc(img) + '" alt="Diagram" loading="lazy"></div>';
+  return svg ? '<div class="diagram">' + svg + '</div>' : '';
+}
 function plain(h) { return String(h).replace(/<u>(.*?)<\/u>/g, '*$1*').replace(/<[^>]+>/g, ''); }
 function fmt(sec) { sec = Math.max(0, Math.round(sec)); var m = Math.floor(sec / 60), s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
 function names(list) { return list.map(function (s) { return NAMES[s] || s; }).join(', '); }
@@ -375,7 +385,7 @@ function vHome() {
   if (t.qotd.length) {
     h += '<div class="box"><h3>Question of the day</h3>' + t.qotd.map(function (q) {
       var r = (S.qres || {})[q.id];
-      return '<p class="qtext" style="margin-top:10px"><span class="tag">' + esc(NAMES[q.subject] || q.subject) + '</span><span class="tag ghost">' + esc(q.label) + '</span><br>' + safe(q.q) + '</p><ul class="qo">'
+      return '<p class="qtext" style="margin-top:10px"><span class="tag">' + esc(NAMES[q.subject] || q.subject) + '</span><span class="tag ghost">' + esc(q.label) + '</span><br>' + safe(q.q) + '</p>' + diagram(q.svg, q.img) + '<ul class="qo">'
         + q.o.map(function (o, i) { return '<li class="' + (r && r.answer === L[i] ? 'right' : '') + '"><span class="l">' + (r && r.answer === L[i] ? '✓' : L[i]) + '</span><span>' + safe(o) + '</span></li>'; }).join('') + '</ul>'
         + (r ? '<div class="fb g"><b>Answer: ' + esc(r.answer) + '</b>' + safe(r.solution) + '</div>'
           : (t.qotd_revealed ? '<p><button class="btn ghost" data-act="show-qotd" data-id="' + esc(q.id) + '" type="button">Show the answer</button></p>'
@@ -443,7 +453,7 @@ function vCbt() {
     + '<div class="prog"><div class="segs">' + segs + '</div><span class="count">' + (R.i + 1) + ' / ' + n + '</span>' + (mode === 'practice' ? '<span class="pill b">✗ ' + noc + '</span><span class="pill g">✓ ' + okc + '</span>' : '') + '</div>'
     + '<div class="grid" role="group" aria-label="Question map">' + grid + '</div>'
     + '<div><span class="tag">' + esc(NAMES[q.subject] || q.subject) + '</span><span class="tag ghost">' + esc(q.label) + '</span></div>'
-    + '<h3 class="qno">Question ' + (R.i + 1) + '</h3><p class="qtext">' + safe(q.q) + '</p>' + opts + fb + conf
+    + '<h3 class="qno">Question ' + (R.i + 1) + '</h3><p class="qtext">' + safe(q.q) + '</p>' + diagram(q.svg, q.img) + opts + fb + conf
     + '<div class="nav"><button class="btn ghost" data-act="back" type="button"' + (R.i === 0 ? ' disabled' : '') + '>Previous</button>'
     + (last ? '<button class="btn" data-act="submit" type="button"' + (need ? ' disabled' : '') + '>' + (mode === 'test' ? 'Submit test' : 'See my score') + '</button>'
       : '<button class="btn" data-act="next" type="button"' + (need ? ' disabled' : '') + '>Next</button>') + '</div>'
@@ -479,7 +489,7 @@ function vResult() {
   }).join('');
   var rev = r.review.map(function (x, i) {
     var st = !x.yours ? 'sk' : (x.correct ? 'ok' : 'no');
-    return '<div class="rev"><div class="h"><span class="mk ' + st + '">' + (st === 'ok' ? '✓' : (st === 'no' ? '✗' : '–')) + '</span>Question ' + (i + 1) + '<span class="tag">' + esc(NAMES[x.subject] || x.subject) + '</span></div><p>' + safe(x.q) + '</p>'
+    return '<div class="rev"><div class="h"><span class="mk ' + st + '">' + (st === 'ok' ? '✓' : (st === 'no' ? '✗' : '–')) + '</span>Question ' + (i + 1) + '<span class="tag">' + esc(NAMES[x.subject] || x.subject) + '</span></div><p>' + safe(x.q) + '</p>' + diagram(x.svg, x.img)
       + '<p class="muted">Your answer: ' + (x.yours ? esc(x.yours) + '. ' + safe(x.o[L.indexOf(x.yours)]) : 'not answered') + '</p><p><b>Correct: ' + esc(x.answer) + '. ' + safe(x.o[L.indexOf(x.answer)]) + '</b></p><p class="muted">' + safe(x.solution) + '</p></div>';
   }).join('');
   return '<div class="box"><h2>Your result</h2><p style="margin:14px 0 0"><span class="score">' + r.score + '/' + r.out_of + '</span> <span class="muted">' + Math.round(r.score / r.out_of * 100) + '%</span></p>'
@@ -521,7 +531,7 @@ function cardHTML(c, view) {
     + '<div class="top"><div class="lg"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="#FFB020" stroke-width="2"/><path d="M16 5 L19.2 16 L16 27 L12.8 16 Z" fill="#FFB020"/><path d="M5 16 L16 12.8 L27 16 L16 19.2 Z" fill="#fff" opacity=".85"/></svg><div><b>Frontier</b><span>Study. Prepare. Shine.</span></div></div><span class="day">Week ' + esc(c.week) + '</span></div>'
     + '<h3 class="ttl">' + (ans ? 'The answer' : 'Question of the day') + '</h3>'
     + '<div class="subj"><span class="g">' + esc(GLYPH[c.subject] || '') + '</span><span class="st"><b>' + esc(NAMES[c.subject] || c.subject) + '</b><span>' + esc(c.topic) + '</span></span></div>'
-    + '<div class="panel"><p class="q">' + safe(c.q) + '</p><ol>' + opts + '</ol><p class="src">' + esc(c.label) + '</p></div>' + bottom
+    + '<div class="panel"><p class="q">' + safe(c.q) + '</p>' + (c.img ? '<div class="diagram card-diagram"><img src="' + esc(c.img) + '" alt="Diagram" loading="lazy"></div>' : (c.svg ? '<div class="diagram card-diagram">' + c.svg + '</div>' : '')) + '<ol>' + opts + '</ol><p class="src">' + esc(c.label) + '</p></div>' + bottom
     + '<p class="hl">' + esc(ans ? 'Got it wrong? Good. Now you’ll remember it.' : c.human_line) + '</p>' + pillars() + '</article>';
 }
 function waText(c, view) {
