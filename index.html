@@ -293,7 +293,7 @@ function chrome() {
   var logged = !!S.token, who = $('#who'), nav = $('#nav');
   who.hidden = !logged;
   who.innerHTML = logged ? '<strong>' + esc(S.id) + '</strong><br>' + esc(names(['english'].concat(S.subjects))) + ' <button data-act="logout" type="button">Log out</button>' : '';
-  var main = ['home', 'board', 'history'].indexOf(S.view) >= 0;
+  var main = ['home', 'board', 'history', 'result'].indexOf(S.view) >= 0;
   nav.hidden = !(logged && main);
   $$('.tab', nav).forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.v === S.view)); });
   $('#wrap').className = 'wrap' + (S.view === 'admin' ? ' wide' : '');
@@ -411,7 +411,7 @@ function startCbt(mode) {
   authed('start', { mode: mode }).then(function (r) {
     if (!r) return;
     if (!r.ok) { setMsg(errText(r), 'err'); busy($('[data-act="start"]'), false); return; }
-    R = { qs: t.questions, mode: r.mode, secs: r.seconds, n: r.n, startToken: r.startToken, i: 0, ans: {}, res: {}, confirm: false, wait: false, deadline: Date.now() + r.n * r.seconds * 1000 };
+    R = { qs: t.questions, mode: r.mode, secs: r.seconds, n: r.n, startToken: r.startToken, i: 0, ans: {}, res: {}, confirm: false, wait: false, deadline: Date.now() + r.n * r.seconds * 1000, keys: r.keys || null };
     S.view = 'cbt'; render();
     if (R.mode === 'test') { stopTimer(); timerId = setInterval(tick, 500); }
   });
@@ -449,7 +449,8 @@ function vCbt() {
     conf = '<div class="fb b"><b>You have ' + un + ' unanswered question' + (un > 1 ? 's' : '') + '.</b>Submit anyway, or keep going.<div class="row" style="margin-top:10px"><button class="btn" data-act="finish" type="button">Submit anyway</button><button class="btn ghost" data-act="keep" type="button">Keep going</button></div></div>';
   }
   return '<div class="box"><div class="chead"><div><h2>' + esc({ daily: 'Daily CBT', weekly_test: 'Weekly test', diagnostic: 'Diagnostic', mock: 'Mock exam' }[S.today.kind] || 'CBT') + '</h2><p class="muted" style="margin:2px 0 0">' + (mode === 'test' ? 'Test mode' : 'Practice mode') + '</p></div>'
-    + (mode === 'test' ? '<div class="timer" id="timer" role="timer">' + fmt(R.n * R.secs) + '</div>' : '') + '</div>'
+    + (mode === 'test' ? '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><div class="timer" id="timer" role="timer">' + fmt(R.n * R.secs) + '</div><button class="link" style="font-size:13px;color:var(--muted)" data-act="abandon" type="button">Abandon test</button></div>'
+      : '<button class="link" style="font-size:13px;color:var(--muted);align-self:flex-start;margin-top:4px" data-act="abandon" type="button">← Back to today</button>') + '</div>'
     + '<div class="prog"><div class="segs">' + segs + '</div><span class="count">' + (R.i + 1) + ' / ' + n + '</span>' + (mode === 'practice' ? '<span class="pill b">✗ ' + noc + '</span><span class="pill g">✓ ' + okc + '</span>' : '') + '</div>'
     + '<div class="grid" role="group" aria-label="Question map">' + grid + '</div>'
     + '<div><span class="tag">' + esc(NAMES[q.subject] || q.subject) + '</span><span class="tag ghost">' + esc(q.label) + '</span></div>'
@@ -464,13 +465,22 @@ function choose(letter) {
   if (R.wait) return;
   if (R.mode === 'practice') {
     if (R.res[q.id]) return;
-    R.ans[q.id] = letter; R.wait = true; render();
-    authed('check', { qid: q.id, choice: letter }).then(function (r) {
-      R.wait = false;
-      if (!r) return;
-      if (!r.ok) { delete R.ans[q.id]; render(); setMsg(errText(r), 'err'); return; }
-      R.res[q.id] = { correct: r.correct, answer: r.answer, solution: r.solution }; render();
-    });
+    R.ans[q.id] = letter;
+    // If we have keys from the server, give instant feedback with no network call
+    if (R.keys && R.keys[q.id]) {
+      var k = R.keys[q.id];
+      R.res[q.id] = { correct: letter === k.answer, answer: k.answer, solution: k.solution };
+      render();
+    } else {
+      // Fallback: server check (should not be needed but keeps things working if keys are missing)
+      R.wait = true; render();
+      authed('check', { qid: q.id, choice: letter }).then(function (r) {
+        R.wait = false;
+        if (!r) return;
+        if (!r.ok) { delete R.ans[q.id]; render(); setMsg(errText(r), 'err'); return; }
+        R.res[q.id] = { correct: r.correct, answer: r.answer, solution: r.solution }; render();
+      });
+    }
   } else { R.ans[q.id] = letter; render(); }
 }
 function finish() {
@@ -643,6 +653,13 @@ document.addEventListener('click', function (e) {
   }
   if (act === 'keep') { R.confirm = false; render(); return; }
   if (act === 'finish') { finish(); return; }
+  if (act === 'abandon') {
+    if (!R) { go('home'); return; }
+    if (R.mode === 'test') {
+      if (!confirm('Abandon this test? Your progress will be lost and it will count as one attempt.')) return;
+    }
+    R = null; stopTimer(); go('home'); return;
+  }
   if (act === 'admin-load') { A.key = $('#akey').value.trim(); A.i = 0; loadAdmin(''); return; }
   if (act === 'acard') { A.i = parseInt(b.dataset.i, 10); render(); return; }
   if (act === 'aview') { A.view = b.dataset.v; render(); return; }
