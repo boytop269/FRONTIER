@@ -282,6 +282,8 @@ function authed(action, data) {
 
 /* ---------- navigation ---------- */
 function go(view) {
+  // Invalidate today cache when returning to home from result or cbt — state may have changed
+  if (view === 'home' && S.view === 'result') S.today = null;
   S.view = view;
   if (view !== 'cbt') stopTimer();
   render();
@@ -362,11 +364,27 @@ function vChange() {
 }
 
 /* ---------- home ---------- */
-function loadToday() {
+function loadToday(force) {
+  // Use cached result for the same calendar day unless forced
+  var today = new Date().toISOString().slice(0, 10);
+  if (!force && S.today && S.today._date === today) { render(); return; }
   S.today = null; render();
   authed('today').then(function (r) {
     if (!r) return;
-    S.today = r.ok ? r : { error: r }; if (S.view === 'home') render();
+    S.today = r.ok ? Object.assign(r, { _date: today }) : { error: r };
+    if (S.view === 'home') render();
+  });
+}
+window._resetTodayCache = function() { S.today = null; }; // test helper — not called by normal app flow
+function preloadToday() {
+  // Fire immediately after login — warms up the cache so Start is instant
+  var today = new Date().toISOString().slice(0, 10);
+  if (S.today && S.today._date === today) return;
+  authed('today').then(function (r) {
+    if (!r || S.today) return; // don't overwrite if already set
+    var today2 = new Date().toISOString().slice(0, 10);
+    S.today = r.ok ? Object.assign(r, { _date: today2 }) : { error: r };
+    if (S.view === 'home') render();
   });
 }
 function vHome() {
@@ -579,14 +597,15 @@ document.addEventListener('click', function (e) {
   if (act === 'logout') { clearSession(); S.note = ''; go('login'); return; }
   if (act === 'to-join') { J = { code: '', id: '', subs: [], confirm: false }; go('join'); return; }
   if (act === 'to-login') { go('login'); return; }
-  if (act === 'reload') { loadToday(); return; }
-  if (act === 'home') { go('home'); return; }
+  if (act === 'reload') { loadToday(true); return; }
+  if (act === 'home') { S.today = null; go('home'); return; } // clear cache so attempt count and QOTD reflect latest state
   if (act === 'login') {
     var id = $('#lid').value.trim().toUpperCase(), pin = $('#lpin').value; busy(b, true);
     api('login', { id: id, pin: pin }).then(function (r) {
       busy(b, false);
       if (!r.ok) { setMsg(errText(r), 'err'); return; }
       S.token = r.token; S.id = r.id; S.name = r.name; S.subjects = r.subjects; S.note = ''; saveSession();
+      preloadToday(); // warm the cache in the background immediately after login
       go(r.mustChange ? 'change' : 'home');
     });
     return;
@@ -680,9 +699,25 @@ document.addEventListener('keydown', function (e) {
   if (raw) {
     try { var s = JSON.parse(raw); if (s && s.token) { S.token = s.token; S.id = s.id; S.name = s.name || ''; S.subjects = s.subjects || []; } } catch (e) { store.del('fr_session'); }
   }
-  if (S.token) go('home'); else go('login');
+  if (S.token) { preloadToday(); go('home'); } else go('login');
 })();
 })();
+</script>
+<script>
+// Register service worker for offline support and instant repeat loads
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(reg) {
+        // Request periodic background sync to keep shell fresh (where supported)
+        if (reg.periodicSync) {
+          reg.periodicSync.register('update-shell', { minInterval: 24 * 60 * 60 * 1000 })
+            .catch(function() {}); // silent if permission not granted
+        }
+      })
+      .catch(function() {}); // silent if SW blocked (e.g. HTTP)
+  });
+}
 </script>
 </body>
 </html>
