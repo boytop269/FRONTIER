@@ -393,10 +393,18 @@ function vHome() {
   var t = S.today;
   if (!t) return '<div class="box"><p class="muted">Loading today…</p></div>';
   if (t.error) return '<div class="box"><div class="fb b">' + esc(errText(t.error)) + '</div><button class="btn" data-act="reload" type="button">Try again</button></div>';
-  if (t.none) return '<div class="box"><h2>Today</h2><p>No CBT is scheduled for today. Check the group for today’s post, and enjoy the rest.</p></div>';
-    var h = '<div class="box"><span class="tag">Week ' + esc(t.week) + '</span><span class="tag">' + esc({ daily: 'Daily CBT', weekly_test: 'Weekly test', diagnostic: 'Diagnostic', mock: 'Mock exam' }[t.kind] || t.kind) + '</span>'
+  if (t.none) return '<div class="box"><h2>Today</h2><p>No CBT is scheduled for today. Check the group for today\'s post, and enjoy the rest.</p></div>';
+  var h = '<div class="box"><span class="tag">Week ' + esc(t.week) + '</span><span class="tag">' + esc({ daily: 'Daily CBT', weekly_test: 'Weekly test', diagnostic: 'Diagnostic', mock: 'Mock exam' }[t.kind] || t.kind) + '</span>'
     + (S.dname ? '<p class="muted" style="margin:6px 0 0">Hi, ' + esc(S.dname) + '.</p>' : '')
     + (t.human_line ? '<p class="human">' + esc(t.human_line) + '</p>' : '') + '</div>';
+  if (t.wod) {
+    h += '<div class="box"><h3>Word of the day</h3>'
+      + '<p><strong>' + esc(t.wod.word) + '</strong> — ' + esc(t.wod.meaning) + '</p>'
+      + '<p class="muted">' + esc(t.wod.example) + '</p>'
+      + (t.wod.synonyms ? '<p class="muted"><b>Synonyms:</b> ' + esc(t.wod.synonyms) + '</p>' : '')
+      + (t.wod.antonyms ? '<p class="muted"><b>Antonyms:</b> ' + esc(t.wod.antonyms) + '</p>' : '')
+      + '</div>';
+  }
   if (t.study_cards.length) {
     h += '<div class="box"><h3>Study</h3>' + t.study_cards.map(function (c) {
       return '<details class="card"><summary>' + esc(c.title) + '</summary><p><b>Rule.</b> ' + safe(c.rule) + '</p><p><b>Example.</b> ' + safe(c.example) + '</p>'
@@ -413,9 +421,9 @@ function vHome() {
             : '<p class="muted">Drop your answer in the group. The answer comes this evening.</p>'));
     }).join('') + '</div>';
   }
-  if (!t.questions.length) return h + '<div class="box"><p>No questions are ready for your subjects today. Check the group for today’s post.</p></div>';
+  if (!t.questions.length) return h + '<div class="box"><p>No questions are ready for your subjects today. Check the group for today\'s post.</p></div>';
   var n = t.questions.length, total = n * t.seconds_per_question, done = t.attempts.length;
-  h += '<div class="box"><h3>' + esc(t.kind === 'daily' ? 'Today’s CBT' : 'Your test') + '</h3><p class="muted">' + n + ' questions from ' + esc(names(['english'].concat(S.subjects))) + '.</p>';
+  h += '<div class="box"><h3>' + esc(t.kind === 'daily' ? 'Today\'s CBT' : 'Your test') + '</h3><p class="muted">' + n + ' questions from ' + esc(names(['english'].concat(S.subjects))) + '.</p>';
   if (t.modes.length > 1) {
     h += '<div class="modes"><label class="mode"><input type="radio" name="mode" value="practice" checked><span><b>Practice mode</b>You see the answer and a one-line solution after every question. No timer.</span></label>'
       + '<label class="mode"><input type="radio" name="mode" value="test"><span><b>Test mode</b>' + fmt(total) + ' on the clock, no feedback until you submit, like the real UTME.</span></label></div>';
