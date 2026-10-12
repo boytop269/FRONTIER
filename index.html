@@ -265,12 +265,14 @@ function setMsg(text, kind) { var m = $('#msg'); if (m) { m.textContent = text |
 function busy(btn, on) { if (btn) { btn.disabled = !!on; } }
 
 /* ---------- state ---------- */
-var S = { token: null, id: null, name: '', subjects: [], view: 'login', today: null, board: null, hist: null, note: '' };
+var S = { token: null, id: null, name: '', dname: '', subjects: [], view: 'login', today: null, board: null, hist: null, note: '' };
 var J = { code: '', id: '', subs: [], confirm: false };
 var R = null, timerId = null;
 
-function saveSession() { store.set('fr_session', JSON.stringify({ token: S.token, id: S.id, name: S.name, subjects: S.subjects })); }
-function clearSession() { store.del('fr_session'); S.token = null; S.id = null; S.name = ''; S.subjects = []; S.today = null; R = null; stopTimer(); }
+function saveSession() {
+  localStorage.setItem('fs', JSON.stringify({ token: S.token, id: S.id, name: S.name, dname: S.dname, subjects: S.subjects }));
+}
+function clearSession() { store.del('fr_session'); S.token = null; S.id = null; S.name = ''; S.dname = ''; S.subjects = []; S.today = null; R = null; stopTimer(); }
 function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
 function authed(action, data) {
   return api(action, Object.assign({ token: S.token }, data || {})).then(function (r) {
@@ -294,7 +296,7 @@ function go(view) {
 function chrome() {
   var logged = !!S.token, who = $('#who'), nav = $('#nav');
   who.hidden = !logged;
-  who.innerHTML = logged ? '<strong>' + esc(S.id) + '</strong><br>' + esc(names(['english'].concat(S.subjects))) + ' <button data-act="logout" type="button">Log out</button>' : '';
+  who.innerHTML = logged ? '<strong>' + esc(S.dname || S.id) + '</strong><br>' + esc(names(['english'].concat(S.subjects))) + ' <button data-act="logout" type="button">Log out</button>' : '';
   var main = ['home', 'board', 'history', 'result'].indexOf(S.view) >= 0;
   nav.hidden = !(logged && main);
   $$('.tab', nav).forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.v === S.view)); });
@@ -392,7 +394,8 @@ function vHome() {
   if (!t) return '<div class="box"><p class="muted">Loading today…</p></div>';
   if (t.error) return '<div class="box"><div class="fb b">' + esc(errText(t.error)) + '</div><button class="btn" data-act="reload" type="button">Try again</button></div>';
   if (t.none) return '<div class="box"><h2>Today</h2><p>No CBT is scheduled for today. Check the group for today’s post, and enjoy the rest.</p></div>';
-  var h = '<div class="box"><span class="tag">Week ' + esc(t.week) + '</span><span class="tag">' + esc({ daily: 'Daily CBT', weekly_test: 'Weekly test', diagnostic: 'Diagnostic', mock: 'Mock exam' }[t.kind] || t.kind) + '</span>'
+    var h = '<div class="box"><span class="tag">Week ' + esc(t.week) + '</span><span class="tag">' + esc({ daily: 'Daily CBT', weekly_test: 'Weekly test', diagnostic: 'Diagnostic', mock: 'Mock exam' }[t.kind] || t.kind) + '</span>'
+    + (S.dname ? '<p class="muted" style="margin:6px 0 0">Hi, ' + esc(S.dname) + '.</p>' : '')
     + (t.human_line ? '<p class="human">' + esc(t.human_line) + '</p>' : '') + '</div>';
   if (t.study_cards.length) {
     h += '<div class="box"><h3>Study</h3>' + t.study_cards.map(function (c) {
@@ -533,7 +536,7 @@ function vBoard() {
   if (!b.ok) return '<div class="box"><div class="fb b">' + esc(errText(b)) + '</div></div>';
   function list(title, note, rows, unit) {
     return '<div class="box"><h3>' + title + '</h3><p class="muted">' + note + '</p>' + (rows.length
-      ? '<table class="t"><tbody>' + rows.map(function (x) { return '<tr' + (x.you ? ' style="font-weight:700"' : '') + '><td class="rank">' + x.rank + '</td><td>' + esc(x.id) + (x.you ? ' (you)' : '') + '</td><td>' + x.value + unit + '</td></tr>'; }).join('') + '</tbody></table>'
+      ? '<table class="t"><tbody>' + rows.map(function (x) { return '<tr' + (x.you ? ' style="font-weight:700"' : '') + '><td class="rank">' + x.rank + '</td><td>' + esc(x.displayName || x.id) + (x.you ? ' (you)' : '') + '</td><td>' + x.value + unit + '</td></tr>'; }).join('') + '</tbody></table>'
       : '<p>Not enough results yet. Take your tests in test mode to appear here.</p>') + '</div>';
   }
   return list('Most improved', 'Test-mode average this week compared with last week.', b.improvement, ' points') + list('Longest streak', 'Days in a row with at least one CBT.', b.streak, ' days');
@@ -604,7 +607,7 @@ document.addEventListener('click', function (e) {
     api('login', { id: id, pin: pin }).then(function (r) {
       busy(b, false);
       if (!r.ok) { setMsg(errText(r), 'err'); return; }
-      S.token = r.token; S.id = r.id; S.name = r.name; S.subjects = r.subjects; S.note = ''; saveSession();
+      S.token = r.token; S.id = r.id; S.name = r.name; S.dname = r.displayName || ''; S.subjects = r.subjects; S.note = ''; saveSession();
       preloadToday(); // warm the cache in the background immediately after login
       go(r.mustChange ? 'change' : 'home');
     });
@@ -697,7 +700,7 @@ document.addEventListener('keydown', function (e) {
   if (location.hash === '#admin') { S.view = 'admin'; render(); return; }
   var raw = store.get('fr_session');
   if (raw) {
-    try { var s = JSON.parse(raw); if (s && s.token) { S.token = s.token; S.id = s.id; S.name = s.name || ''; S.subjects = s.subjects || []; } } catch (e) { store.del('fr_session'); }
+    try { var s = JSON.parse(raw); if (s && s.token) { S.token = s.token; S.id = s.id; S.name = s.name || ''; S.dname = s.dname || ''; S.subjects = s.subjects || []; } } catch (e) { store.del('fr_session'); }
   }
   if (S.token) { preloadToday(); go('home'); } else go('login');
 })();
