@@ -647,7 +647,7 @@ document.addEventListener('click', function (e) {
     api('login', { id: J.id, pin: J.pin }).then(function (r) {
       busy(b, false);
       if (!r.ok) { setMsg(errText(r), 'err'); return; }
-      S.token = r.token; S.id = r.id; S.name = r.name; S.subjects = r.subjects; saveSession(); J.pin = ''; go('home');
+      S.token = r.token; S.id = r.id; S.name = r.name; S.dname = r.displayName || ''; S.subjects = r.subjects; saveSession(); J.pin = ''; go('home');
     });
     return;
   }
