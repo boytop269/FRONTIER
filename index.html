@@ -270,7 +270,7 @@ var J = { code: '', id: '', subs: [], confirm: false };
 var R = null, timerId = null;
 
 function saveSession() {
-  localStorage.setItem('fs', JSON.stringify({ token: S.token, id: S.id, name: S.name, dname: S.dname, subjects: S.subjects }));
+  localStorage.setItem('fr_session', JSON.stringify({ token: S.token, id: S.id, name: S.name, dname: S.dname, subjects: S.subjects }));
 }
 function clearSession() { store.del('fr_session'); S.token = null; S.id = null; S.name = ''; S.dname = ''; S.subjects = []; S.today = null; R = null; stopTimer(); }
 function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
