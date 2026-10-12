@@ -2,7 +2,7 @@
 // Caches the app shell (index.html) for instant repeat loads.
 // The question pack is fetched fresh each calendar day and cached until midnight.
 
-const SHELL_CACHE = 'frontier-shell-v1';
+const SHELL_CACHE = 'frontier-shell-v2';
 const PACK_CACHE  = 'frontier-pack-v1';
 const SHELL_FILES = ['/'];   // index.html — adjust if hosted in a subfolder
 
